@@ -17,7 +17,7 @@ void Vec3d::update_spheric() {
     
     phi = atan2(y,x);
     if (phi < 0) {
-        phi += 2*M_PI;
+        phi += 2*pi;
     }
 }
 
@@ -51,43 +51,43 @@ void Vec3d::set_r(double r_) {
     }
     else {
         r = -r_;
-        theta = M_PI - theta;
-        phi = fmod(phi + M_PI, 2*M_PI);
+        theta = pi - theta;
+        phi = fmod(phi + pi, 2*pi);
     }
     update_xyz();
 }
 
 void Vec3d::set_theta(double theta_) {
-    theta = fmod(theta_, 2*M_PI);
+    theta = fmod(theta_, 2*pi);
     if (theta < 0) {
-        theta += 2*M_PI;
+        theta += 2*pi;
     }
-    if (theta >= M_PI) {
-        theta = 2*M_PI - theta; 
+    if (theta >= pi) {
+        theta = 2*pi - theta; 
     }
     update_xyz();
 }
 
 void Vec3d::set_phi(double phi_) {
-    phi = fmod(phi_, 2*M_PI);
+    phi = fmod(phi_, 2*pi);
     if (phi < 0) {
-        phi += 2*M_PI;
+        phi += 2*pi;
     }
     update_xyz();
 }
 
 void Vec3d::set_spheric(double r_, double theta_, double phi_) {
-    theta = fmod(theta_, 2*M_PI);
+    theta = fmod(theta_, 2*pi);
     if (theta < 0) {
-        theta += 2*M_PI;
+        theta += 2*pi;
     }
-    if (theta >= M_PI) {
-        theta = 2*M_PI - theta; 
+    if (theta >= pi) {
+        theta = 2*pi - theta; 
     }
 
-    phi = fmod(phi_, 2*M_PI);
+    phi = fmod(phi_, 2*pi);
     if (phi < 0) {
-        phi += 2*M_PI;
+        phi += 2*pi;
     }
 
     if (r_ >= 0) {
@@ -95,8 +95,8 @@ void Vec3d::set_spheric(double r_, double theta_, double phi_) {
     }
     else {
         r = -r_;
-        theta = M_PI - theta;
-        phi = fmod(phi + M_PI, 2*M_PI);
+        theta = pi - theta;
+        phi = fmod(phi + pi, 2*pi);
     }
     
     update_xyz();
@@ -172,7 +172,7 @@ Vec3d& Vec3d::operator-=(Vec3d right) {
 }
 
 Vec3d& Vec3d::operator-() {
-    set_spheric(r, M_PI - theta, phi + M_PI);
+    set_spheric(r, pi - theta, phi + pi);
     return *this;
 }
 

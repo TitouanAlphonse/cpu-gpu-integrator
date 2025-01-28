@@ -1,5 +1,7 @@
 #include"../headers/global.h"
 
+double pi = 3.141592653589793;
+
 double au = 149597870700;
 double day = 60*60*24;
 double G = 6.67430e-11;

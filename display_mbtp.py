@@ -4,9 +4,10 @@ from matplotlib.animation import FuncAnimation, FFMpegWriter
 import time
 
 
-def animation3D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, max_size_mb = 100, size_tp = 0.5, show = True, save = False, nb_fps = 15, file_path = r"results/", file_name = r"animation3D.mp4", ffmpeg_path = r"C:\Users\titou\Desktop\Travail\ffmpeg\bin\ffmpeg.exe"):
+def animation3D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, max_size_mb = 100, size_tp = 0.5, show = True, save = False, nb_fps = 15, file_path = r"results/", file_name = r"animation3D.mp4", ffmpeg_path = None):
 
-    plt.rcParams['animation.ffmpeg_path'] = ffmpeg_path
+    if ffmpeg_path != None:
+        plt.rcParams['animation.ffmpeg_path'] = ffmpeg_path
 
     Nstep = len(data_pos)
     Nframes = Nstep//skip_frames
@@ -53,9 +54,10 @@ def animation3D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, 
         plt.show()
 
 
-def animation2D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, max_size_mb = 100, size_tp = 0.5, show = True, save = False, nb_fps = 15, file_path = r"results/", file_name = r"animation2D.mp4", ffmpeg_path = r"C:\Users\titou\Desktop\Travail\ffmpeg\bin\ffmpeg.exe"):
+def animation2D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, max_size_mb = 100, size_tp = 0.5, show = True, save = False, nb_fps = 15, file_path = r"results/", file_name = r"animation2D.mp4", ffmpeg_path = None):
 
-    plt.rcParams['animation.ffmpeg_path'] = ffmpeg_path
+    if ffmpeg_path != None:
+        plt.rcParams['animation.ffmpeg_path'] = ffmpeg_path
 
     Nstep = len(data_pos)
     Nframes = Nstep//skip_frames
@@ -96,7 +98,6 @@ def animation2D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, 
     plot_positions2 = np.array([ax2.scatter([], [], color = color_mb[i], s = size_mb[i]) for i in range(N_mb)] + [ax2.scatter([], [], color = color_tp[i], s = size_tp) for i in range(N_tp)])
 
     fig.suptitle(f"N_mb = {N_mb}, N_tp = {N_tp}, tau = {tau/(60*60*24):.4f} days, frame_skip = {skip_frames}")
-    # fig.tight_layout()
 
 
     def update_pos(frame, plot_positions1, plot_positions2):
@@ -160,8 +161,8 @@ data_pos = np.loadtxt("results/positions.txt")
 
 start = time.time()
 
-# curves(data_pos, data_general)
-animation3D(data_pos, data_general, 100, 0.00001, 100, 1, show = False, save = True)
+curves(data_pos, data_general)
+# animation3D(data_pos, data_general, 10, 0.00001, 100, 1, show = True, save = False)
 
 end = time.time()
 

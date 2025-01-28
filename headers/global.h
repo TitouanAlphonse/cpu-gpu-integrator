@@ -2,11 +2,15 @@
 #define GLOBAL_H
 
 #include<iostream>
+#include<stdlib.h>
+#include<stdio.h>
 #include<cmath>
 #include<chrono>
 #include<fstream>
 #include<random>
 using namespace std;
+
+extern double pi;
 
 extern double au;
 extern double day;
