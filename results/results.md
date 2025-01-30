@@ -1,0 +1,1 @@
+Folder containing the results of the integration (general data and positions).

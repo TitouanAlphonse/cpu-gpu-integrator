@@ -18,14 +18,14 @@ massive_body::massive_body(double m_, double R_, Vec3d q_init, Vec3d v_init) {
     }
 
     q = q_init;
-    p = m*v_init;
+    v = year/au*v_init;
 
 }
 
 
 void massive_body::print() {
-    cout << "Mass : " << m << " kg (" << in_MJ(m) << " Jupiter masses)" << endl;
-    cout << "Radius : " << R << " m (" << in_RJ(R) << " Jupiter radii)" << endl;
-    cout << "Position (in number of a.u.):" << endl;
-    (q/au).print();
+    cout << "Mass : " << m << " Sun masses" << endl;
+    cout << "Radius : " << R*R_Sun/1e3 << " km (" << R << " Sun radii)" << endl;
+    cout << "Position (in a.u.):" << endl;
+    q.print();
 }

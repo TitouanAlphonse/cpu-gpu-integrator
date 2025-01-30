@@ -105,16 +105,24 @@ void Vec3d::set_spheric(double r_, double theta_, double phi_) {
 // ----------------
 
 Vec3d::Vec3d(double p1, double p2, double p3, string type_def) {
+    bool flag = false;
+
     if (type_def == "xyz") {
         set_xyz(p1, p2, p3);
+        flag = true;
     }
-    else {
-        if (type_def == "spheric") {
-            set_spheric(p1, p2, p3);
-        }
-        else {
-            cout << "Not recognized type of définition" << endl;
-        }
+    if (type_def == "cylindric") {
+        set_spheric(p1, pi/2, p2);
+        set_z(p3);
+        flag = true;
+    }
+    if (type_def == "spheric") {
+        set_spheric(p1, p2, p3);
+        flag = true;
+    }
+
+    if (!flag) {
+        cout << "Not recognized type of definition" << endl;
     }
 }
 
@@ -147,7 +155,7 @@ double Vec3d::get_phi() {
 // ----------------
 
 void Vec3d::print() {
-    // cout << "Cartesian coordinates : (" << x << ";" << y << ";" << z << ")" << endl;
+    cout << "Cartesian coordinates : (" << x << ";" << y << ";" << z << ")" << endl;
     cout << "Spherical coordinates : (" << r << ";" << theta << ";" << phi << ")" << endl;
 }
 

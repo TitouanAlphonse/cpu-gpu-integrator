@@ -5,15 +5,13 @@
 #include"Vec3d.h"
 
 class test_particle {
-// private:
 public:
 
-    Vec3d q;    // position
-    Vec3d v;    // momentum
+    Vec3d q;    // position (in a.u.)
+    Vec3d v;    // velocity (in a.u./years)
 
-// public:
     test_particle() : q(Vec3d()), v(Vec3d()) {}
-    test_particle(Vec3d q_init, Vec3d v_init);
+    test_particle(Vec3d q_init, Vec3d v_init); // q_init norm in a.u., v_init norm in m/s
 
     void print();
 };

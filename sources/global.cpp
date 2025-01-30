@@ -2,44 +2,50 @@
 
 double pi = 3.141592653589793;
 
-double au = 149597870700;
-double day = 60*60*24;
-double G = 6.67430e-11;
+double au = 149597870700; // in m
+double year = 365.25*60*60*24; // in s
+double day_in_years = 1/365.25; // in years
 
 
-double M_Sun = 1.98892e30;
-double R_Sun = 696340*1e3;
+double M_Sun = 1.98892e30; // in kg
+double R_Sun = 696340*1e3; // in m
 
-double M_Jupiter = 1.898e27;
-double R_Jupiter = 71492*1e3;
-double v_Jupiter = 13.058*1e3;
-double dist_Jupiter = 778.5e6*1e3;
+double G = 6.67430e-11*(year*year*M_Sun/pow(au,3)); // in years^-2.a.u.^3.Sun masses^-1
 
-double M_Saturn = 5.684e26;
-double R_Saturn = 60268*1e3;
-double v_Saturn = 9.68*1e3;
-double dist_Saturn = 1.434e9*1e3;
+double M_Jupiter = 1.898e27; // in kg
+double R_Jupiter = 71492*1e3; // in m
+double v_Jupiter = 13.058*1e3; // in m/s
+double dist_Jupiter = 778.5e6*1e3; // in m
 
-double M_Uranus = 8.681e25;
-double R_Uranus = 25559*1e3;
-double v_Uranus = 6.796*1e3;
-double dist_Uranus = 2.871e9*1e3;
+double M_Saturn = 5.684e26; // in kg
+double R_Saturn = 60268*1e3; // in m
+double v_Saturn = 9.68*1e3; // in m/s
+double dist_Saturn = 1.434e9*1e3; // in m
 
-double M_Neptune = 1.024e26;
-double R_Neptune = 24764*1e3;
-double v_Neptune = 5.432*1e3;
-double dist_Neptune = 4.495e9*1e3;
+double M_Uranus = 8.681e25; // in kg
+double R_Uranus = 25559*1e3; // in m
+double v_Uranus = 6.796*1e3; // in m/s
+double dist_Uranus = 2.871e9*1e3; // in m
+
+double M_Neptune = 1.024e26; // in kg
+double R_Neptune = 24764*1e3; // in m
+double v_Neptune = 5.432*1e3; // in m/s
+double dist_Neptune = 4.495e9*1e3; // in m
 
 
-double in_MS(double m) {
+double in_SM(double m) {
     return m/M_Sun;
 }
 
-double in_MJ(double m) {
+double in_JM(double m) {
     return m/M_Jupiter;
 }
 
-double in_RJ(double d) {
+double in_SR(double d) {
+    return d/R_Sun;
+}
+
+double in_JR(double d) {
     return d/R_Jupiter;
 }
 
