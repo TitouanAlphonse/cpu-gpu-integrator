@@ -10,7 +10,8 @@
 #include<random>
 using namespace std;
 
-extern double pi;
+#define pi 3.141592653589793
+#define G 39.48705426895748 // in years^-2.a.u.^3.Sun masses^-1
 
 extern double au;
 extern double year;
@@ -18,8 +19,6 @@ extern double day_in_years;
 
 extern double M_Sun;
 extern double R_Sun;
-
-extern double G;
 
 extern double M_Jupiter;
 extern double R_Jupiter;

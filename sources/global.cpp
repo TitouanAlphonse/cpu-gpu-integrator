@@ -1,7 +1,5 @@
 #include"../headers/global.h"
 
-double pi = 3.141592653589793;
-
 double au = 149597870700; // in m
 double year = 365.25*60*60*24; // in s
 double day_in_years = 1/365.25; // in years
@@ -9,8 +7,6 @@ double day_in_years = 1/365.25; // in years
 
 double M_Sun = 1.98892e30; // in kg
 double R_Sun = 696340*1e3; // in m
-
-double G = 6.67430e-11*(year*year*M_Sun/pow(au,3)); // in years^-2.a.u.^3.Sun masses^-1
 
 double M_Jupiter = 1.898e27; // in kg
 double R_Jupiter = 71492*1e3; // in m
