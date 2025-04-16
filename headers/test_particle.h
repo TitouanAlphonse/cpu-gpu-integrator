@@ -14,6 +14,8 @@ public:
     test_particle(Vec3d q_init, Vec3d v_init); // q_init norm in a.u., v_init norm in m/s
 
     void print();
+
+    test_particle& operator=(const test_particle&) = default;
 };
 
 #endif

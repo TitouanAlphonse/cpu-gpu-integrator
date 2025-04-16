@@ -1,5 +1,5 @@
 COMPILER = nvcc
-OS = windows
+OS = linux
 
 run : objects/main.o objects/global.o objects/Vec3d.o objects/massive_body.o objects/test_particle.o objects/integrators.o
 	$(COMPILER) -o $@ $^

@@ -17,6 +17,8 @@ public:
     massive_body(double m_, double R_, Vec3d q_init, Vec3d v_init); // m_ in Sun masses, R_ in sun radii, q_init norm in a.u., v_init norm in m/s
 
     void print();
+
+    massive_body& operator=(const massive_body&) = default;
 };
 
 #endif
