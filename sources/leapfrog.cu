@@ -1,4 +1,4 @@
-#include"../headers/integrators.h"
+#include"../headers/leapfrog.h"
 
 
 //--------------------------------------------//
@@ -66,6 +66,13 @@ __host__ void writing(massive_body* mb, test_particle* tp, int N_mb, int N_tp, o
         fich << tp[i].q.get_x() << " " << tp[i].q.get_y() << " " << tp[i].q.get_z() << " ";
     }
     fich << endl;
+}
+
+
+void step_leapfrog_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau) {
+    drift_CPU(mb, tp, N_mb, N_tp, tau/2);
+    kick_CPU(mb, tp, N_mb, N_tp, tau);
+    drift_CPU(mb, tp, N_mb, N_tp, tau/2);
 }
 
 
@@ -224,6 +231,18 @@ __global__ void step_tp_GPU(massive_body* mb, test_particle* tp, int N_mb, int N
     drift_tp_GPU(tp, N_tp, tau_drift);
     kick_tp_GPU(mb, tp, N_mb, N_tp, tau_kick);
     drift_tp_GPU(tp, N_tp, tau_drift);
+}
+
+
+__global__ void step_leapfrog_GPU(massive_body* mb, test_particle* tp, massive_body* access_mb, test_particle* access_tp, int N_mb, int N_tp, double tau, int nb_block, int nb_thread) {
+    drift_mb(mb, N_mb, tau/2);
+    cudaMemcpy(access_mb, mb, N_mb*sizeof(massive_body), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
+    kick_mb(mb, N_mb, tau);
+    drift_mb(mb, N_mb, tau/2);
+
+    step_tp_GPU<<<nb_block, nb_thread>>>(access_mb, access_tp, N_mb, N_tp, tau, tau/2);
+    cudaMemcpy(tp, access_tp, N_tp*sizeof(test_particle), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 }
 
 

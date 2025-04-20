@@ -1,79 +1,64 @@
 #include"../headers/global.h"
 #include"../headers/Vec3d.h"
 #include"../headers/massive_body.h"
-#include"../headers/integrators.h"
+#include"../headers/init.h"
+#include"../headers/leapfrog.h"
+
 
 int main() {
 
-    random_device rd;
+    int N_mb, N_tp, N_step, nb_block, nb_thread, N_substep;
+    double integration_duration, tau;
+    string integration_mode, init_config_mb, init_config_tp;
+    bool error_init = false;
 
-    uniform_real_distribution<> uniform(0, 1);
+    read_and_init("input.in", error_init, N_mb, N_tp, N_step, integration_duration, tau, integration_mode, nb_block, nb_thread, N_substep, init_config_mb, init_config_tp);
 
-    // int N_step = 27741;
-    double integration_duration = 1; // In minutes
-    // int N_substep = 100;
-    double tau = 10*day_in_years;
+    // cout << "N_mb : " << N_mb << endl;
+    // cout << "N_tp : " << N_tp << endl;
+    // cout << "N_step : " << N_step << endl;
+    // cout << "integration_duration : " << integration_duration << endl;
+    // cout << "tau : " << tau/day_in_years << endl;
+    // cout << "integration mode : " << integration_mode << endl;
+    // cout << "nb_block : " << nb_block << endl;
+    // cout << "nb_thread : " << nb_thread << endl;
+    // cout << "N_substep : " << N_substep << endl;
+    // cout << "init_config_mb : " << init_config_mb << endl;
+    // cout << "init_config_tp : " << init_config_tp << endl;
+    // cout << "error : " << error_init << endl << endl;
 
-    int N_mb = 5;
-    int N_tp = 10000;
-
-    int nb_block = 10;
-    int nb_thread = 1000;
-
-    massive_body *mb_init = (massive_body*)malloc(N_mb*sizeof(massive_body));
-    test_particle *tp_init = (test_particle*)malloc(N_tp*sizeof(test_particle));
     massive_body *mb = (massive_body*)malloc(N_mb*sizeof(massive_body));
     test_particle *tp = (test_particle*)malloc(N_tp*sizeof(test_particle));
 
-    double angle = 0;
-
-    mb_init[0] = massive_body(1, 1, Vec3d(), Vec3d());
-    mb_init[1] = massive_body(in_SM(M_Jupiter), in_SR(R_Jupiter), Vec3d(dist_Jupiter/au, pi/2, angle, "spheric"), Vec3d(v_Jupiter, pi/2, angle + pi/2, "spheric"));
-    mb_init[2] = massive_body(in_SM(M_Saturn), in_SR(R_Saturn), Vec3d(dist_Saturn/au, pi/2, angle, "spheric"), Vec3d(v_Saturn, pi/2, angle + pi/2, "spheric"));
-    mb_init[3] = massive_body(in_SM(M_Uranus), in_SR(R_Uranus), Vec3d(dist_Uranus/au, pi/2, angle, "spheric"), Vec3d(v_Uranus, pi/2, angle + pi/2, "spheric"));
-    mb_init[4] = massive_body(in_SM(M_Neptune), in_SR(R_Neptune), Vec3d(dist_Neptune/au, pi/2, angle, "spheric"), Vec3d(v_Neptune, pi/2, angle + pi/2, "spheric"));
-
-    Vec3d q;
-    Vec3d v;
-    test_particle particle;
-
-    for (int i=0; i<N_tp; i++) {
-        q = Vec3d((1 + 99*uniform(rd)), pi/2 + (1-2*uniform(rd))*pi/8, uniform(rd)*2*pi, "spheric");
-        v = -cross_product(q, Vec3d(0,0,1,"xyz"))*(0.9 + 0.2*uniform(rd))*sqrt(G*pow(au/year,2)/q.norm())/q.norm();
-        v.set_theta(v.get_theta() + (1-2*uniform(rd))*pi/8);
-
-        particle = test_particle(q, v);
-        tp_init[i] = particle;
-    }
-
-    for (int i=0; i<N_mb; i++) {
-        mb[i] = mb_init[i];
-    }
-    for (int i=0; i<N_tp; i++) {
-        tp[i] = tp_init[i];
-    }
-
-    // auto start_CPU = chrono::high_resolution_clock::now();
-    // leapfrog_CPU(mb, tp, N_mb, N_tp, tau, N_step, "_CPU");
-    // auto end_CPU = chrono::high_resolution_clock::now();
+    init_mb(mb, N_mb, init_config_mb);
+    init_tp(tp, N_tp, init_config_tp);
 
 
-    for (int i=0; i<N_mb; i++) {
-        mb[i] = mb_init[i];
-    }
-    for (int i=0; i<N_tp; i++) {
-        tp[i] = tp_init[i];
-    }
-
-    auto start_GPU = chrono::high_resolution_clock::now();
-    leapfrog_GPU(mb, tp, N_mb, N_tp, tau, integration_duration, nb_block, nb_thread, "_GPU");
-    auto end_GPU = chrono::high_resolution_clock::now();
-
-    for (int i=0; i<N_mb; i++) {
-        mb[i] = mb_init[i];
-    }
-    for (int i=0; i<N_tp; i++) {
-        tp[i] = tp_init[i];
+    if (!error_init) {
+        if (integration_mode == "cpu") {
+            if (N_step == -1) {
+                cout << "Not implemented yet" << endl;
+            }
+            else {
+                leapfrog_CPU(mb, tp, N_mb, N_tp, tau, N_step, "_CPU");
+            }
+        }
+        if (integration_mode == "gpu") {
+            if (N_step == -1) {
+                leapfrog_GPU(mb, tp, N_mb, N_tp, tau, integration_duration, nb_block, nb_thread, "_GPU");
+            }
+            else {
+                leapfrog_GPU(mb, tp, N_mb, N_tp, tau, N_step, nb_block, nb_thread, "_GPU");
+            }
+        }
+        if (integration_mode == "gpu_multi-step") {
+            if (N_step == -1) {
+                cout << "Not implemented yet" << endl;
+            }
+            else {
+                leapfrog_GPU_multi_t(mb, tp, N_mb, N_tp, tau, N_step, N_substep, nb_block, nb_thread, "_GPU_multi_t");
+            }
+        }
     }
 
     free(mb);

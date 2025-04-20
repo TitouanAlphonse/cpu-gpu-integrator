@@ -1,7 +1,7 @@
 COMPILER = nvcc
 OS = linux
 
-run : objects/main.o objects/global.o objects/Vec3d.o objects/massive_body.o objects/test_particle.o objects/integrators.o
+run : objects/main.o objects/global.o objects/Vec3d.o objects/massive_body.o objects/test_particle.o objects/init.o objects/leapfrog.o
 	$(COMPILER) -o $@ $^
 
 objects/global.o: sources/global.cpp headers/global.h
@@ -16,10 +16,13 @@ objects/massive_body.o: sources/massive_body.cpp headers/massive_body.h headers/
 objects/test_particle.o: sources/test_particle.cpp headers/test_particle.h headers/global.h
 	$(COMPILER) -c $< -o $@
 
-objects/integrators.o: sources/integrators.cu headers/test_particle.h headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h
+objects/init.o: sources/init.cpp headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h
 	$(COMPILER) -c $< -o $@
 
-objects/main.o: main/main.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h headers/integrators.h
+objects/leapfrog.o: sources/leapfrog.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h
+	$(COMPILER) -c $< -o $@
+
+objects/main.o: main/main.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h headers/init.h headers/leapfrog.h
 	$(COMPILER) -c $< -o $@
 
 all: run

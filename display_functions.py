@@ -147,11 +147,27 @@ def curves(data_pos, data_general, show = True):
     plt.xlabel("Time (in years)")
     plt.ylabel("Distance from the Sun (in number of a.u.)")
 
-    for i in range(N_mb, N_bodies-9500):
+    for i in range(N_mb, N_bodies):
         plt.plot(np.arange(Nstep)*tau, np.sqrt((data_pos[:,3*i] - data_pos[:,0])**2 + (data_pos[:,3*i+1] - data_pos[:,1])**2 + (data_pos[:,3*i+2] - data_pos[:,2])**2), color = (0,(i-N_mb)/max(1, N_bodies-N_mb-1),1))
 
     for i in range(1, N_mb):
         plt.plot(np.arange(Nstep)*tau, np.sqrt((data_pos[:,3*i] - data_pos[:,0])**2 + (data_pos[:,3*i+1] - data_pos[:,1])**2 + (data_pos[:,3*i+2] - data_pos[:,2])**2), color = (1,0.5*(i-1)/(N_mb-2),0))
+
+    if show:
+        plt.show()
+
+
+def sun(data_pos, data_general, show = True):
+
+    Nstep = len(data_pos)
+    N_bodies = len(data_pos[0])//3
+    N_tp = int(data_general[0][1])
+    N_mb = N_bodies - N_tp
+    tau = data_general[0][0]
+
+    plt.xlabel("Time (in years)")
+    plt.ylabel("Position of the Sun (in number of a.u.)")
+    plt.plot(np.arange(Nstep)*tau, np.sqrt(data_pos[:,0]**2 + data_pos[:,1]**2 + data_pos[:,2]**2))
 
     if show:
         plt.show()
