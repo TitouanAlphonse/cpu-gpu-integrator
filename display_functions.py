@@ -4,7 +4,7 @@ from matplotlib.animation import FuncAnimation, FFMpegWriter
 import time
 
 
-def animation3D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, max_size_mb = 100, size_tp = 0.5, show = True, save = False, nb_fps = 15, file_path = r"results/", file_name = r"animation3D.mp4", ffmpeg_path = None):
+def animation3D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, max_size_mb = 100, size_tp = 0.5, show = True, save = False, nb_fps = 15, file_path = r"outputs/", file_name = r"animation3D.mp4", ffmpeg_path = None):
 
     if ffmpeg_path != None:
         plt.rcParams['animation.ffmpeg_path'] = ffmpeg_path
@@ -16,15 +16,15 @@ def animation3D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, 
     N_mb = N_bodies - N_tp
     tau = data_general[0][0]
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(projection="3d")
 
     R_max = np.max(data_general[1:,1])
     plot_positions = [ax.scatter([], [], [], color='r', s = max_size_mb*data_general[i+1][1]/R_max) for i in range(N_mb)] + [ax.scatter([], [], [], color='b', s = size_tp) for i in range(N_tp)]
 
-    max_x = np.max(np.array([np.abs(data_pos[0][3*i]) for i in range(1,N_bodies)]))
-    max_y = np.max(np.array([np.abs(data_pos[0][3*i+1]) for i in range(1,N_bodies)]))
-    max_z = np.max(np.array([np.abs(data_pos[0][3*i+2]) for i in range(1,N_bodies)]))
+    max_x = np.max(np.array([np.abs(data_pos[0][1+3*i]) for i in range(1,N_bodies)]))
+    max_y = np.max(np.array([np.abs(data_pos[0][1+3*i+1]) for i in range(1,N_bodies)]))
+    max_z = np.max(np.array([np.abs(data_pos[0][1+3*i+2]) for i in range(1,N_bodies)]))
 
     max_ax = max([max_x, max_y, max_z])
 
@@ -40,7 +40,7 @@ def animation3D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, 
 
         i = 0
         for plot_1pos in plot_positions:
-            plot_1pos._offsets3d = ([data_pos[frame*skip_frames][i*3]], [data_pos[frame*skip_frames][i*3+1]], [data_pos[frame*skip_frames][i*3+2]])
+            plot_1pos._offsets3d = ([data_pos[frame*skip_frames][1+i*3]], [data_pos[frame*skip_frames][1+i*3+1]], [data_pos[frame*skip_frames][1+i*3+2]])
             i += 1
         return plot_positions
 
@@ -54,7 +54,7 @@ def animation3D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, 
         plt.show()
 
 
-def animation2D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, max_size_mb = 100, size_tp = 0.5, show = True, save = False, nb_fps = 15, file_path = r"results/", file_name = r"animation2D.mp4", ffmpeg_path = None):
+def animation2D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, max_size_mb = 100, size_tp = 0.5, show = True, save = False, nb_fps = 15, file_path = r"outputs/", file_name = r"animation2D.mp4", ffmpeg_path = None):
 
     if ffmpeg_path != None:
         plt.rcParams['animation.ffmpeg_path'] = ffmpeg_path
@@ -66,13 +66,13 @@ def animation2D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, 
     N_mb = N_bodies - N_tp
     tau = data_general[0][0]
 
-    fig = plt.figure(figsize = (10, 5))
+    fig = plt.figure(figsize = (15, 8))
     ax1 = fig.add_subplot(1,2,1)
     ax2 = fig.add_subplot(1,2,2)
 
-    max_x = np.max(np.array([np.abs(data_pos[0][3*i]) for i in range(1,N_bodies)]))
-    max_y = np.max(np.array([np.abs(data_pos[0][3*i+1]) for i in range(1,N_bodies)]))
-    max_z = np.max(np.array([np.abs(data_pos[0][3*i+2]) for i in range(1,N_bodies)]))
+    max_x = np.max(np.array([np.abs(data_pos[0][1+3*i]) for i in range(1,N_bodies)]))
+    max_y = np.max(np.array([np.abs(data_pos[0][1+3*i+1]) for i in range(1,N_bodies)]))
+    max_z = np.max(np.array([np.abs(data_pos[0][1+3*i+2]) for i in range(1,N_bodies)]))
 
     max_ax = 1.2*max([max_x, max_y, max_z])
 
@@ -105,22 +105,22 @@ def animation2D(data_pos, data_general, skip_frames = 1, time_interval = 0.001, 
         ax1.set_title(f"t = {tau*frame*skip_frames:.2f} years")
         ax2.set_title(f"Frame : {frame+1}/{Nframes}")
 
-        x = np.array([data_pos[frame*skip_frames][i*3] for i in range(N_bodies)])
-        y = np.array([data_pos[frame*skip_frames][i*3+1] for i in range(N_bodies)])
-        z = np.array([data_pos[frame*skip_frames][i*3+2] for i in range(N_bodies)])
+        x = np.array([data_pos[frame*skip_frames][1+i*3] for i in range(N_bodies)])
+        y = np.array([data_pos[frame*skip_frames][1+i*3+1] for i in range(N_bodies)])
+        z = np.array([data_pos[frame*skip_frames][1+i*3+2] for i in range(N_bodies)])
 
         order_x = np.argsort(x)
         order_z = np.argsort(z)
 
         order = 0
         for i in order_z:
-            plot_positions1[i].set_offsets([[data_pos[frame*skip_frames][i*3], data_pos[frame*skip_frames][i*3+1]]])
+            plot_positions1[i].set_offsets([[data_pos[frame*skip_frames][1+i*3], data_pos[frame*skip_frames][1+i*3+1]]])
             plot_positions1[i].set_zorder(order)
             order += 1
 
         order = 0
         for i in order_x:
-            plot_positions2[i].set_offsets([[data_pos[frame*skip_frames][i*3+1], data_pos[frame*skip_frames][i*3+2]]])
+            plot_positions2[i].set_offsets([[data_pos[frame*skip_frames][1+i*3+1], data_pos[frame*skip_frames][1+i*3+2]]])
             plot_positions2[i].set_zorder(order)
             order += 1
 
@@ -143,15 +143,17 @@ def curves(data_pos, data_general, show = True):
     N_tp = int(data_general[0][1])
     N_mb = N_bodies - N_tp
     tau = data_general[0][0]
+    times = data_pos[:,0]
+    # freq_w = data_general[1][1]
 
     plt.xlabel("Time (in years)")
     plt.ylabel("Distance from the Sun (in number of a.u.)")
 
     for i in range(N_mb, N_bodies):
-        plt.plot(np.arange(Nstep)*tau, np.sqrt((data_pos[:,3*i] - data_pos[:,0])**2 + (data_pos[:,3*i+1] - data_pos[:,1])**2 + (data_pos[:,3*i+2] - data_pos[:,2])**2), color = (0,(i-N_mb)/max(1, N_bodies-N_mb-1),1))
+        plt.plot(times*tau, np.sqrt((data_pos[:,1+3*i] - data_pos[:,1])**2 + (data_pos[:,1+3*i+1] - data_pos[:,2])**2 + (data_pos[:,1+3*i+2] - data_pos[:,3])**2), color = (0,(i-N_mb)/max(1, N_bodies-N_mb-1),1))
 
     for i in range(1, N_mb):
-        plt.plot(np.arange(Nstep)*tau, np.sqrt((data_pos[:,3*i] - data_pos[:,0])**2 + (data_pos[:,3*i+1] - data_pos[:,1])**2 + (data_pos[:,3*i+2] - data_pos[:,2])**2), color = (1,0.5*(i-1)/(N_mb-2),0))
+        plt.plot(times*tau, np.sqrt((data_pos[:,1+3*i] - data_pos[:,1])**2 + (data_pos[:,1+3*i+1] - data_pos[:,2])**2 + (data_pos[:,1+3*i+2] - data_pos[:,3])**2), color = (1,0.5*(i-1)/(N_mb-2),0))
 
     if show:
         plt.show()
@@ -167,7 +169,7 @@ def sun(data_pos, data_general, show = True):
 
     plt.xlabel("Time (in years)")
     plt.ylabel("Position of the Sun (in number of a.u.)")
-    plt.plot(np.arange(Nstep)*tau, np.sqrt(data_pos[:,0]**2 + data_pos[:,1]**2 + data_pos[:,2]**2))
+    plt.plot(np.arange(Nstep)*tau, np.sqrt(data_pos[:,1]**2 + data_pos[:,2]**2 + data_pos[:,3]**2))
 
     if show:
         plt.show()

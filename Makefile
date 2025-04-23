@@ -1,7 +1,7 @@
+OS = windows
 COMPILER = nvcc
-OS = linux
 
-run : objects/main.o objects/global.o objects/Vec3d.o objects/massive_body.o objects/test_particle.o objects/init.o objects/leapfrog.o
+run : objects/main.o objects/global.o objects/Vec3d.o objects/massive_body.o objects/test_particle.o objects/init.o objects/leapfrog.o objects/integration.o
 	$(COMPILER) -o $@ $^
 
 objects/global.o: sources/global.cpp headers/global.h
@@ -22,7 +22,10 @@ objects/init.o: sources/init.cpp headers/global.h headers/Vec3d.h headers/massiv
 objects/leapfrog.o: sources/leapfrog.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h
 	$(COMPILER) -c $< -o $@
 
-objects/main.o: main/main.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h headers/init.h headers/leapfrog.h
+objects/integration.o: sources/integration.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h
+	$(COMPILER) -c $< -o $@
+
+objects/main.o: main/main.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h headers/init.h headers/leapfrog.h headers/integration.h
 	$(COMPILER) -c $< -o $@
 
 all: run
@@ -42,13 +45,13 @@ else
 	@echo Unsupported OS
 endif
 
-clean_results:
+clean_outputs:
 ifeq ($(OS), linux)
-	rm -f results/*.txt
+	rm -f outputs/*.txt
 else ifeq ($(OS), windows)
-	del results\*.txt
+	del outputs\*.txt
 else
 	@echo Unsupported OS
 endif
 
-clean_all: clean clean_results
+clean_all: clean clean_outputs

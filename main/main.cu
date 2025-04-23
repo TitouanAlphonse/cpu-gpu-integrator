@@ -3,66 +3,61 @@
 #include"../headers/massive_body.h"
 #include"../headers/init.h"
 #include"../headers/leapfrog.h"
+#include"../headers/integration.h"
 
 
-int main() {
+int main (int argc, char *argv[]) {
 
     int N_mb, N_tp, N_step, nb_block, nb_thread, N_substep;
-    double integration_duration, tau;
-    string integration_mode, init_config_mb, init_config_tp;
-    bool error_init = false;
+    double computation_time, tau, freq_w;
+    string input_file_path, integration_method, integration_mode, init_config_mb, init_config_tp, suffix;
+    bool error_init = false, def_freq_w_in_steps, def_N_step_in_cp_time;
 
-    read_and_init("input.in", error_init, N_mb, N_tp, N_step, integration_duration, tau, integration_mode, nb_block, nb_thread, N_substep, init_config_mb, init_config_tp);
-
-    // cout << "N_mb : " << N_mb << endl;
-    // cout << "N_tp : " << N_tp << endl;
-    // cout << "N_step : " << N_step << endl;
-    // cout << "integration_duration : " << integration_duration << endl;
-    // cout << "tau : " << tau/day_in_years << endl;
-    // cout << "integration mode : " << integration_mode << endl;
-    // cout << "nb_block : " << nb_block << endl;
-    // cout << "nb_thread : " << nb_thread << endl;
-    // cout << "N_substep : " << N_substep << endl;
-    // cout << "init_config_mb : " << init_config_mb << endl;
-    // cout << "init_config_tp : " << init_config_tp << endl;
-    // cout << "error : " << error_init << endl << endl;
-
-    massive_body *mb = (massive_body*)malloc(N_mb*sizeof(massive_body));
-    test_particle *tp = (test_particle*)malloc(N_tp*sizeof(test_particle));
-
-    init_mb(mb, N_mb, init_config_mb);
-    init_tp(tp, N_tp, init_config_tp);
-
-
-    if (!error_init) {
-        if (integration_mode == "cpu") {
-            if (N_step == -1) {
-                cout << "Not implemented yet" << endl;
-            }
-            else {
-                leapfrog_CPU(mb, tp, N_mb, N_tp, tau, N_step, "_CPU");
-            }
-        }
-        if (integration_mode == "gpu") {
-            if (N_step == -1) {
-                leapfrog_GPU(mb, tp, N_mb, N_tp, tau, integration_duration, nb_block, nb_thread, "_GPU");
-            }
-            else {
-                leapfrog_GPU(mb, tp, N_mb, N_tp, tau, N_step, nb_block, nb_thread, "_GPU");
-            }
-        }
-        if (integration_mode == "gpu_multi-step") {
-            if (N_step == -1) {
-                cout << "Not implemented yet" << endl;
-            }
-            else {
-                leapfrog_GPU_multi_t(mb, tp, N_mb, N_tp, tau, N_step, N_substep, nb_block, nb_thread, "_GPU_multi_t");
-            }
-        }
+    if (argc > 1) {
+        input_file_path = argv[1];
+    }
+    else {
+        cout << "Please specify the input file path : ";
+        cin >> input_file_path;
     }
 
-    free(mb);
-    free(tp);
+    read_and_init(input_file_path, error_init, N_mb, N_tp, N_step, computation_time, def_N_step_in_cp_time, tau, integration_method, integration_mode, nb_block, nb_thread, N_substep, init_config_mb, init_config_tp, suffix, freq_w, def_freq_w_in_steps);
+
+    if (!error_init) {
+
+        print_info_start(integration_method, integration_mode, N_mb, N_tp, N_step, computation_time, def_N_step_in_cp_time, tau, freq_w, def_freq_w_in_steps);
+
+        auto start = chrono::high_resolution_clock::now();
+
+        massive_body *mb = (massive_body*)malloc(N_mb*sizeof(massive_body));
+        test_particle *tp = (test_particle*)malloc(N_tp*sizeof(test_particle));
+
+        init_mb(mb, N_mb, init_config_mb);
+        init_tp(tp, N_tp, init_config_tp);
+
+        ofstream file_general;
+        ofstream file_pos;
+
+        file_general.open("outputs/general_data"+suffix+".txt", ios::out);
+        file_pos.open("outputs/positions"+suffix+".txt", ios::out);
+
+        write_init(file_general, file_pos, tau, freq_w, mb, tp, N_mb, N_tp);
+        file_general.close();
+        
+        launch_integration(integration_method, integration_mode, mb, tp, N_mb, N_tp, tau, N_step, computation_time, def_N_step_in_cp_time, nb_block, nb_thread, file_pos, freq_w, def_freq_w_in_steps);
+
+        file_pos.close();
+
+        free(mb);
+        free(tp);
+
+        auto end = chrono::high_resolution_clock::now();
+
+        print_info_end(N_step, def_N_step_in_cp_time, tau, suffix);
+
+        get_time(start, end);
+        cout << endl;
+    }
 
     return 0;
 }

@@ -57,18 +57,6 @@ void drift_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double t
     drift_tp_CPU(tp, N_tp, tau);
 }
 
-
-__host__ void writing(massive_body* mb, test_particle* tp, int N_mb, int N_tp, ofstream& fich) {
-    for (int i=0; i<N_mb; i++) {
-        fich << mb[i].q.get_x() << " " << mb[i].q.get_y() << " " << mb[i].q.get_z() << " ";
-    }
-    for (int i=0; i<N_tp; i++) {
-        fich << tp[i].q.get_x() << " " << tp[i].q.get_y() << " " << tp[i].q.get_z() << " ";
-    }
-    fich << endl;
-}
-
-
 void step_leapfrog_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau) {
     drift_CPU(mb, tp, N_mb, N_tp, tau/2);
     kick_CPU(mb, tp, N_mb, N_tp, tau);
@@ -76,74 +64,54 @@ void step_leapfrog_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, 
 }
 
 
-void leapfrog_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau, int N_step, string suffix) {
+//--------------------------------------------//
+//                     GPU                    //
+//--------------------------------------------//
 
-    cout << "-------------" << endl;
-    cout << "Leapfrog CPU" << endl;
-    cout << "-------------" << endl << endl;
-    cout << "Integration performed over " << N_step*tau << " years" << endl;
-    cout << "time-step : " << tau/day_in_years << " days (Total number of steps : " << N_step << ")" << endl;
-    cout << N_mb << " massive bodies, " << N_tp << " test-particles" << endl << endl;
 
-    cout << "Initialization... " << flush;
-
-    auto start = chrono::high_resolution_clock::now();
-
-    ofstream fich_general;
-    ofstream fich_pos;
-
-    // Initialization :
-
-    fich_general.open("results/general_data"+suffix+".txt", ios::out);
-    fich_pos.open("results/positions"+suffix+".txt", ios::out);
-
-    fich_general << tau << " " << N_tp << endl;
-
-    for (int i=0; i<N_mb; i++) {
-        fich_general << mb[i].m << " " << mb[i].R << endl;
-        fich_pos << mb[i].q.get_x() << " " << mb[i].q.get_y() << " " << mb[i].q.get_z() << " ";
+__device__ void kick_tp_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau) {
+    int i = threadIdx.x + blockDim.x*blockIdx.x;
+    double r_ij;
+    if (i < N_tp) {
+        for (int j=0; j<N_mb; j++) {
+            r_ij = sqrt(pow(tp[i].q.get_x() - mb[j].q.get_x(),2) + pow(tp[i].q.get_y() - mb[j].q.get_y(),2) + pow(tp[i].q.get_z() - mb[j].q.get_z(),2));
+            
+            tp[i].v.set_x(tp[i].v.get_x() - tau*G*mb[j].m/pow(r_ij,3)*(tp[i].q.get_x() - mb[j].q.get_x()));
+            tp[i].v.set_y(tp[i].v.get_y() - tau*G*mb[j].m/pow(r_ij,3)*(tp[i].q.get_y() - mb[j].q.get_y()));
+            tp[i].v.set_z(tp[i].v.get_z() - tau*G*mb[j].m/pow(r_ij,3)*(tp[i].q.get_z() - mb[j].q.get_z()));
+        }
     }
+}
 
-    for (int i=0; i<N_tp; i++) {
-        fich_pos << tp[i].q.get_x() << " " << tp[i].q.get_y() << " " << tp[i].q.get_z() << " ";
+__device__ void drift_tp_GPU(test_particle* tp, int N_tp, double tau) {
+    int i = threadIdx.x + blockDim.x*blockIdx.x;
+    if (i < N_tp) {
+        tp[i].q.set_x(tp[i].q.get_x() + tau*tp[i].v.get_x());
+        tp[i].q.set_y(tp[i].q.get_y() + tau*tp[i].v.get_y());
+        tp[i].q.set_z(tp[i].q.get_z() + tau*tp[i].v.get_z());
     }
-    fich_pos << endl;
+}
 
-    fich_general.close();
-
-    // Integration :
-
-    cout << "Done" << endl;
-    cout << "Integration... " << flush;
-    
-    for (int step=0; step<N_step; step++) {
-        // kick_CPU(mb, tp, N_mb, N_tp, tau/2);
-        // drift_CPU(mb, tp, N_mb, N_tp, tau);
-        // kick_CPU(mb, tp, N_mb, N_tp, tau/2);
-        // writing(mb, tp, N_mb, N_tp, fich_pos);
-        drift_CPU(mb, tp, N_mb, N_tp, tau/2);
-        kick_CPU(mb, tp, N_mb, N_tp, tau);
-        drift_CPU(mb, tp, N_mb, N_tp, tau/2);
-        writing(mb, tp, N_mb, N_tp, fich_pos);
-    }
-
-    fich_pos.close();
-
-    auto end = chrono::high_resolution_clock::now();
-
-    cout << "Done" << endl;
-    cout << "Simulation complete" << endl << endl;
-
-    cout << "General data written in : results/general_data" << suffix << ".txt" << endl;
-    cout << "Position data written in  : results/positions" << suffix << ".txt" << endl;
-    get_time(start, end);
-    cout << endl;
+__global__ void step_tp_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau_kick, double tau_drift) {
+    drift_tp_GPU(tp, N_tp, tau_drift);
+    kick_tp_GPU(mb, tp, N_mb, N_tp, tau_kick);
+    drift_tp_GPU(tp, N_tp, tau_drift);
 }
 
 
-void leapfrog_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau, int N_step) {
-    leapfrog_CPU(mb, tp, N_mb, N_tp, tau, N_step, "");
+__host__ void step_leapfrog_GPU(massive_body* mb, test_particle* tp, massive_body* access_mb, test_particle* access_tp, int N_mb, int N_tp, double tau, int nb_block, int nb_thread) {
+    drift_mb(mb, N_mb, tau/2);
+    cudaMemcpy(access_mb, mb, N_mb*sizeof(massive_body), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
+    kick_mb(mb, N_mb, tau);
+    drift_mb(mb, N_mb, tau/2);
+
+    step_tp_GPU<<<nb_block, nb_thread>>>(access_mb, access_tp, N_mb, N_tp, tau, tau/2);
+    cudaMemcpy(tp, access_tp, N_tp*sizeof(test_particle), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
 }
+
+
+// __device__ drift1_tp_multi_t()
 
 
 __host__ void kick1_mb_multi_t(massive_body* mb_multi_t, int N_mb, double tau, int substep) {
@@ -197,231 +165,6 @@ __host__ void writing_multi_t(massive_body* mb_multi_t, test_particle* tp_multi_
     }
 }
 
-
-
-//--------------------------------------------//
-//                     GPU                    //
-//--------------------------------------------//
-
-
-__device__ void kick_tp_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau) {
-    int i = threadIdx.x + blockDim.x*blockIdx.x;
-    double r_ij;
-    if (i < N_tp) {
-        for (int j=0; j<N_mb; j++) {
-            r_ij = sqrt(pow(tp[i].q.get_x() - mb[j].q.get_x(),2) + pow(tp[i].q.get_y() - mb[j].q.get_y(),2) + pow(tp[i].q.get_z() - mb[j].q.get_z(),2));
-            
-            tp[i].v.set_x(tp[i].v.get_x() - tau*G*mb[j].m/pow(r_ij,3)*(tp[i].q.get_x() - mb[j].q.get_x()));
-            tp[i].v.set_y(tp[i].v.get_y() - tau*G*mb[j].m/pow(r_ij,3)*(tp[i].q.get_y() - mb[j].q.get_y()));
-            tp[i].v.set_z(tp[i].v.get_z() - tau*G*mb[j].m/pow(r_ij,3)*(tp[i].q.get_z() - mb[j].q.get_z()));
-        }
-    }
-}
-
-__device__ void drift_tp_GPU(test_particle* tp, int N_tp, double tau) {
-    int i = threadIdx.x + blockDim.x*blockIdx.x;
-    if (i < N_tp) {
-        tp[i].q.set_x(tp[i].q.get_x() + tau*tp[i].v.get_x());
-        tp[i].q.set_y(tp[i].q.get_y() + tau*tp[i].v.get_y());
-        tp[i].q.set_z(tp[i].q.get_z() + tau*tp[i].v.get_z());
-    }
-}
-
-__global__ void step_tp_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau_kick, double tau_drift) {
-    drift_tp_GPU(tp, N_tp, tau_drift);
-    kick_tp_GPU(mb, tp, N_mb, N_tp, tau_kick);
-    drift_tp_GPU(tp, N_tp, tau_drift);
-}
-
-
-__global__ void step_leapfrog_GPU(massive_body* mb, test_particle* tp, massive_body* access_mb, test_particle* access_tp, int N_mb, int N_tp, double tau, int nb_block, int nb_thread) {
-    drift_mb(mb, N_mb, tau/2);
-    cudaMemcpy(access_mb, mb, N_mb*sizeof(massive_body), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
-    kick_mb(mb, N_mb, tau);
-    drift_mb(mb, N_mb, tau/2);
-
-    step_tp_GPU<<<nb_block, nb_thread>>>(access_mb, access_tp, N_mb, N_tp, tau, tau/2);
-    cudaMemcpy(tp, access_tp, N_tp*sizeof(test_particle), cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize();
-}
-
-
-__host__ void leapfrog_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau, int N_step, int nb_block, int nb_thread, string suffix) {
-    cout << "-------------" << endl;
-    cout << "Leapfrog GPU" << endl;
-    cout << "-------------" << endl << endl;
-    cout << "Integration performed over " << N_step*tau << " years" << endl;
-    cout << "time-step : " << tau/day_in_years << " days (Total number of steps : " << N_step << ")" << endl;
-    cout << N_mb << " massive bodies, " << N_tp << " test-particles" << endl << endl;
-
-    cout << "Initialization... " << flush;
-
-    auto start = chrono::high_resolution_clock::now();
-
-    // General data writing and initializations :
-
-    int size_tp = N_tp*sizeof(test_particle);
-    int size_mb = N_mb*sizeof(massive_body);
-
-    ofstream fich_general;
-    ofstream fich_pos;
-
-    fich_general.open("results/general_data"+suffix+".txt", ios::out);
-    fich_pos.open("results/positions"+suffix+".txt", ios::out);
-
-    fich_general << tau << " " << N_tp << endl;
-
-    for (int i=0; i<N_mb; i++) {
-        fich_general << mb[i].m << " " << mb[i].R << endl;
-        fich_pos << mb[i].q.get_x() << " " << mb[i].q.get_y() << " " << mb[i].q.get_z() << " ";
-    }
-
-    fich_general.close();
-
-    for (int i=0; i<N_tp; i++) {
-        fich_pos << tp[i].q.get_x() << " " << tp[i].q.get_y() << " " << tp[i].q.get_z() << " ";
-    }
-    fich_pos << endl;
-
-
-    test_particle *access_tp;
-    massive_body *access_mb;
-
-    cudaMalloc((void **) &access_mb, size_mb);
-    cudaMalloc((void **) &access_tp, size_tp);
-
-    cudaMemcpy(access_tp, tp, size_tp, cudaMemcpyHostToDevice);
-    
-    cout << "Done" << endl;
-    cout << "Integration... " << flush;
-
-    // Integration :
-    
-    for (int step=0; step<N_step; step++) {
-
-        drift_mb(mb, N_mb, tau/2);
-        cudaMemcpy(access_mb, mb, size_mb, cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
-        kick_mb(mb, N_mb, tau);
-        drift_mb(mb, N_mb, tau/2);
-        
-        // Test particles :
-        step_tp_GPU<<<nb_block, nb_thread>>>(access_mb, access_tp, N_mb, N_tp, tau, tau/2);
-        cudaMemcpy(tp, access_tp, size_tp, cudaMemcpyDeviceToHost);
-        cudaDeviceSynchronize();
-
-        writing(mb, tp, N_mb, N_tp, fich_pos);
-    }
-
-    fich_pos.close();
-
-    cudaFree(access_mb);
-    cudaFree(access_tp);
-
-    auto end = chrono::high_resolution_clock::now();
-
-    cout << "Done" << endl;
-    cout << "Simulation complete" << endl << endl;
-
-    cout << "General data written in : results/general_data" << suffix << ".txt" << endl;
-    cout << "Position data written in  : results/positions" << suffix << ".txt" << endl;
-    get_time(start, end);
-    cout << endl;
-}
-
-
-__host__ void leapfrog_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau, int Nstep, int nb_block, int nb_threads) {
-    leapfrog_GPU(mb, tp, N_mb, N_tp, tau, Nstep, nb_block, nb_threads, "");
-}
-
-
-__host__ void leapfrog_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau, double integration_duration, int nb_block, int nb_thread, string suffix) {
-    cout << "-------------" << endl;
-    cout << "Leapfrog GPU" << endl;
-    cout << "-------------" << endl << endl;
-
-    cout << "Computation time : " << integration_duration << " minutes" << endl;
-    cout << N_mb << " massive bodies, " << N_tp << " test-particles" << endl << endl;
-
-    cout << "Initialization... " << flush;
-
-    // General data writing and initializations :
-
-    int size_tp = N_tp*sizeof(test_particle);
-    int size_mb = N_mb*sizeof(massive_body);
-
-    ofstream fich_general;
-    ofstream fich_pos;
-
-    fich_general.open("results/general_data"+suffix+".txt", ios::out);
-    fich_pos.open("results/positions"+suffix+".txt", ios::out);
-
-    fich_general << tau << " " << N_tp << endl;
-
-    for (int i=0; i<N_mb; i++) {
-        fich_general << mb[i].m << " " << mb[i].R << endl;
-        fich_pos << mb[i].q.get_x() << " " << mb[i].q.get_y() << " " << mb[i].q.get_z() << " ";
-    }
-
-    fich_general.close();
-
-    for (int i=0; i<N_tp; i++) {
-        fich_pos << tp[i].q.get_x() << " " << tp[i].q.get_y() << " " << tp[i].q.get_z() << " ";
-    }
-    fich_pos << endl;
-
-
-    test_particle *access_tp;
-    massive_body *access_mb;
-
-    cudaMalloc((void **) &access_mb, size_mb);
-    cudaMalloc((void **) &access_tp, size_tp);
-
-    cudaMemcpy(access_tp, tp, size_tp, cudaMemcpyHostToDevice);
-    
-    cout << "Done" << endl;
-    cout << "Integration... " << flush;
-
-    // Integration :
-
-    auto start = chrono::high_resolution_clock::now();
-    auto time = chrono::high_resolution_clock::now();
-    int N_step = 0;
-    
-    while (chrono::duration_cast<chrono::seconds>(time - start).count() < integration_duration*60) {
-
-        drift_mb(mb, N_mb, tau/2);
-        cudaMemcpy(access_mb, mb, size_mb, cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
-        kick_mb(mb, N_mb, tau);
-        drift_mb(mb, N_mb, tau/2);
-        
-        // Test particles :
-        step_tp_GPU<<<nb_block, nb_thread>>>(access_mb, access_tp, N_mb, N_tp, tau, tau/2);
-        cudaMemcpy(tp, access_tp, size_tp, cudaMemcpyDeviceToHost);
-        cudaDeviceSynchronize();
-
-        writing(mb, tp, N_mb, N_tp, fich_pos);
-
-        N_step++;
-        time = chrono::high_resolution_clock::now();
-    }
-
-    fich_pos.close();
-
-    cudaFree(access_mb);
-    cudaFree(access_tp);
-
-    cout << "Done" << endl;
-    cout << "Simulation complete" << endl << endl;
-
-    cout << "Integration performed over " << N_step*tau << " years (Total number of steps : " << N_step << ")" << endl;
-
-    cout << "General data written in : results/general_data" << suffix << ".txt" << endl;
-    cout << "Position data written in  : results/positions" << suffix << ".txt" << endl;
-    cout << endl;
-}
-
-
-// __device__ drift1_tp_multi_t()
 
 
 __global__ void step_tp_GPU_multi_t(massive_body* mb_multi_t, test_particle* tp_multi_t, int N_mb, int N_tp, double tau_kick, double tau_drift, int N_substep) {
@@ -498,8 +241,8 @@ __host__ void leapfrog_GPU_multi_t(massive_body* mb, test_particle* tp, int N_mb
     ofstream fich_general;
     ofstream fich_pos;
 
-    fich_general.open("results/general_data"+suffix+".txt", ios::out);
-    fich_pos.open("results/positions"+suffix+".txt", ios::out);
+    fich_general.open("outputs/general_data"+suffix+".txt", ios::out);
+    fich_pos.open("outputs/positions"+suffix+".txt", ios::out);
 
     fich_general << tau << " " << N_tp << endl;
 
@@ -574,8 +317,8 @@ __host__ void leapfrog_GPU_multi_t(massive_body* mb, test_particle* tp, int N_mb
     cout << "Done" << endl;
     cout << "Simulation complete" << endl << endl;
 
-    cout << "General data written in : results/general_data" << suffix << ".txt" << endl;
-    cout << "Position data written in  : results/positions" << suffix << ".txt" << endl;
+    cout << "General data written in : outputs/general_data" << suffix << ".txt" << endl;
+    cout << "Position data written in  : outputs/positions" << suffix << ".txt" << endl;
     get_time(start, end);
     cout << endl;
 }
