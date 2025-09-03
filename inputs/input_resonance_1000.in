@@ -1,0 +1,26 @@
+# Input file for the resonant capture with 1000 test-particles
+
+# General parameters
+Number of massive bodies : 2
+Number of test-particles : 1000
+Integration over :  20000000 years    # use "(number of steps) steps", "(integration time) years" or "(computation time) minutes"
+Time-step :  150                    # in days
+
+# Initial configurations
+Initial massive bodies configuration : sun+neptune    # use "sun+gas_planets" or "sun+neptune"
+Initial test-particles configuration : random             # use "random"
+
+# Computation settings
+Integration method : leapfrog          # use "leapfrog" or "MVS"
+Integration mode :  gpu_multi_step               # use "cpu", "gpu" or "gpu_multi_step"
+Number of blocks used :  300           # for GPU calculations
+Number of threads per block : 1024     # for GPU calculations
+Number of sub-steps :  10000
+
+# File writing settings
+File name suffix : res              # use "none" for no suffix, "mode" to match the integration mode or any custom string (no spaces)
+Positions writing frequency : 0.1 %     # writes positions every "(number of steps) steps" or "(percentage of total simulation) %"
+
+
+# Additional user forces
+User forces : dissipation_n          # "none", "dissipation_4p", "dissipation_n"

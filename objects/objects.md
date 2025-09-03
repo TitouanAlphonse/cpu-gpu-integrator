@@ -1,1 +1,0 @@
-# Folder containing objects files used in compilation

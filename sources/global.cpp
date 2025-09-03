@@ -1,5 +1,13 @@
 #include"../headers/global.h"
 
+
+// #################
+//     global.cpp
+// #################
+
+// See headers/global.h for details about the aim of the functions
+
+
 double au = 149597870700; // in m
 double year = 365.25*60*60*24; // in s
 double day_in_years = 1/365.25; // in years

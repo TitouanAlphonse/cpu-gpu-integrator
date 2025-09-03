@@ -1,5 +1,12 @@
 #include"../headers/Vec3d.h"
 
+// #################
+//     Vec3d.cu
+// #################
+
+
+// See headers/Vec3d.h for details about the Vec3d class
+
 Vec3d operator*(double scalar, Vec3d v) {
     return v*scalar;
 }

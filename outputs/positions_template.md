@@ -7,4 +7,7 @@ Each line corresponds to a time-step
 ...
 
 Each line has the following format :
-x-coord. of the 1st massive body    y-coord. of the 1st massive body    z-coord. of the 1st massive body     ...    x-coord. of the last massive body    y-coord. of the last massive body    z-coord. of the last massive body    x-coord. of the 1st test-particle    y-coord. of the 1st test-particle    z-coord. of the 1st test-particle    ...    x-coord. of the last test-particle    y-coord. of the last test-particle    z-coord. of the last test-particle
+step    x-coord. of the 1st massive body    y-coord. of the 1st massive body    z-coord. of the 1st massive body     ...    x-coord. of the last massive body    y-coord. of the last massive body    z-coord. of the last massive body    x-coord. of the 1st test-particle    y-coord. of the 1st test-particle    z-coord. of the 1st test-particle    ...    x-coord. of the last test-particle    y-coord. of the last test-particle    z-coord. of the last test-particle
+
+
+All the positions are given in a.u.
