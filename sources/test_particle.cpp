@@ -1,19 +1,19 @@
-#include"../headers/test_particle.h"
+#include"../headers/Test_particle.h"
 
 // #################
-// test_particle.cpp
+// Test_particle.cpp
 // #################
 
-// See headers/test_particle_body.h for details about the test_particle class
+// See headers/Test_particle_body.h for details about the Test_particle class
 
 
-test_particle::test_particle(Vec3d q_init, Vec3d v_init) {
+Test_particle::Test_particle(Vec3d q_init, Vec3d v_init) {
     q = q_init;
     v = v_init;
 }
 
 
-void test_particle::print() {
+void Test_particle::print() {
     cout << "Position (in a.u.):" << endl;
     q.print();
 }

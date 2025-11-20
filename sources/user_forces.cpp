@@ -1,25 +1,25 @@
-#include"../headers/user_forces.h"
+#include"../headers/User_forces.h"
 
 
-void init_user_forces(string user_forces, bool& enable_user_forces, int& nb_dis, int& N_mb_dis, int*& id_mb, double*& dur_dis, double*& tau_dis, double*& dvel, double*& dedt) {
+User_forces::User_forces(string user_forces_type, bool& enable_user_forces) {
     enable_user_forces = false;
 
-    if (user_forces != "none" && user_forces != "None") {
+    if (user_forces_type != "none" && user_forces_type != "None") {
         enable_user_forces = true;
 
-        if (user_forces == "dissipation_4p") {
+        if (user_forces_type == "dissipation_4p") {
             nb_dis = 1;
             N_mb_dis = 3;
 
-            id_mb = (int*)malloc(N_mb_dis*sizeof(int));
+            id_mb = vector<int>(N_mb_dis);
             id_mb[0] = 2;
             id_mb[1] = 3;
             id_mb[2] = 4;
 
-            dur_dis = (double*)malloc(nb_dis*sizeof(double));
-            tau_dis = (double*)malloc(nb_dis*sizeof(double));
-            dvel = (double*)malloc(N_mb_dis*nb_dis*sizeof(double));
-            dedt = (double*)malloc(N_mb_dis*nb_dis*sizeof(double));
+            dur_dis = vector<double>(nb_dis);
+            tau_dis = vector<double>(nb_dis);
+            dvel = vector<double>(N_mb_dis*nb_dis);
+            dedt = vector<double>(N_mb_dis*nb_dis);
 
             dur_dis[0] = 5e6;
             tau_dis[0] = 1e6;
@@ -31,17 +31,17 @@ void init_user_forces(string user_forces, bool& enable_user_forces, int& nb_dis,
             dedt[2] = 1.37e-12;
         }
 
-        if (user_forces == "dissipation_n") {
+        if (user_forces_type == "dissipation_n") {
             nb_dis = 1;
             N_mb_dis = 1;
 
-            id_mb = (int*)malloc(N_mb_dis*sizeof(int));
+            id_mb = vector<int>(N_mb_dis);
             id_mb[0] = 1;
 
-            dur_dis = (double*)malloc(nb_dis*sizeof(double));
-            tau_dis = (double*)malloc(nb_dis*sizeof(double));
-            dvel = (double*)malloc(N_mb_dis*nb_dis*sizeof(double));
-            dedt = (double*)malloc(N_mb_dis*nb_dis*sizeof(double));
+            dur_dis = vector<double>(nb_dis);
+            tau_dis = vector<double>(nb_dis);
+            dvel = vector<double>(N_mb_dis*nb_dis);
+            dedt = vector<double>(N_mb_dis*nb_dis);
 
             dur_dis[0] = 15e6;
             tau_dis[0] = 2.5e6;
@@ -52,7 +52,7 @@ void init_user_forces(string user_forces, bool& enable_user_forces, int& nb_dis,
 }
 
 
-void apply_user_forces(massive_body* mb, int N_mb, double t, double tau, string user_forces, int nb_dis, int N_mb_dis, int* id_mb, double* dur_dis, double* tau_dis, double* dvel, double* dedt, pos_vel_sub_func pos_vel_sub, double M_tot) {
+void User_forces::apply(Massive_body* mb, int N_mb, double t, double tau, pos_vel_sub_func pos_vel_sub, double M_tot) {
     int i_dis, i;
     double r2, rm1, k, omk, fr, ft;
     Vec3d ur, ut, acc, q_sub, v_sub, q_mb, v_mb;
@@ -92,7 +92,7 @@ void apply_user_forces(massive_body* mb, int N_mb, double t, double tau, string 
 }
 
 
-void apply_user_forces_multi_step(massive_body_qv* mb_qv_multi_step, massive_body_mR* mb_mR, int N_mb, int substep, double t, double tau, string user_forces, int nb_dis, int N_mb_dis, int* id_mb, double* dur_dis, double* tau_dis, double* dvel, double* dedt, pos_vel_sub_func_multi_step pos_vel_sub, double M_tot) {
+void User_forces::apply_multi_step(Massive_body_qv* mb_qv_multi_step, Massive_body_mR* mb_mR, int N_mb, int substep, double t, double tau, pos_vel_sub_func_multi_step pos_vel_sub, double M_tot) {
     int i_dis, i, i_ss;
     double r2, rm1, k, omk, fr, ft;
     Vec3d ur, ut, acc, q_sub, v_sub, q_mb, v_mb;

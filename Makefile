@@ -1,7 +1,7 @@
 OS = windows
 COMPILER = nvcc
 
-run : objects/main.o objects/global.o objects/Vec3d.o objects/massive_body.o objects/test_particle.o objects/init.o objects/tools.o objects/leapfrog.o objects/MVS.o objects/user_forces.o objects/integration.o
+run : objects/main.o objects/global.o objects/Vec3d.o objects/Massive_body.o objects/Test_particle.o objects/init.o objects/tools.o objects/leapfrog.o objects/MVS.o objects/User_forces.o objects/integration.o
 	$(COMPILER) -o $@ $^
 
 objects/global.o: sources/global.cpp headers/global.h
@@ -10,31 +10,31 @@ objects/global.o: sources/global.cpp headers/global.h
 objects/Vec3d.o: sources/Vec3d.cu headers/Vec3d.h headers/global.h
 	$(COMPILER) -c $< -o $@
 
-objects/massive_body.o: sources/massive_body.cpp headers/massive_body.h headers/global.h
+objects/Massive_body.o: sources/Massive_body.cpp headers/Massive_body.h headers/global.h
 	$(COMPILER) -c $< -o $@
 
-objects/test_particle.o: sources/test_particle.cpp headers/test_particle.h headers/global.h
+objects/Test_particle.o: sources/Test_particle.cpp headers/Test_particle.h headers/global.h
 	$(COMPILER) -c $< -o $@
 
-objects/init.o: sources/init.cpp headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h
+objects/init.o: sources/init.cpp headers/global.h headers/Vec3d.h headers/Massive_body.h headers/Test_particle.h
 	$(COMPILER) -c $< -o $@
 
-objects/tools.o: sources/tools.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h
+objects/tools.o: sources/tools.cu headers/global.h headers/Vec3d.h headers/Massive_body.h headers/Test_particle.h
 	$(COMPILER) -c $< -o $@
 
-objects/leapfrog.o: sources/leapfrog.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h headers/tools.h
+objects/leapfrog.o: sources/leapfrog.cu headers/global.h headers/Vec3d.h headers/Massive_body.h headers/Test_particle.h headers/tools.h
 	$(COMPILER) -c $< -o $@
 
-objects/MVS.o: sources/MVS.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h headers/tools.h
+objects/MVS.o: sources/MVS.cu headers/global.h headers/Vec3d.h headers/Massive_body.h headers/Test_particle.h headers/tools.h
 	$(COMPILER) -c $< -o $@
 
-objects/user_forces.o: sources/user_forces.cpp headers/global.h headers/Vec3d.h headers/massive_body.h
+objects/User_forces.o: sources/User_forces.cpp headers/global.h headers/Vec3d.h headers/Massive_body.h
 	$(COMPILER) -c $< -o $@
 
-objects/integration.o: sources/integration.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h headers/leapfrog.h headers/MVS.h headers/user_forces.h
+objects/integration.o: sources/integration.cu headers/global.h headers/Vec3d.h headers/Massive_body.h headers/Test_particle.h headers/leapfrog.h headers/MVS.h headers/User_forces.h
 	$(COMPILER) -c $< -o $@
 
-objects/main.o: main/main.cu headers/global.h headers/Vec3d.h headers/massive_body.h headers/test_particle.h headers/init.h headers/leapfrog.h headers/MVS.h headers/integration.h headers/user_forces.h
+objects/main.o: main/main.cu headers/global.h headers/Vec3d.h headers/Massive_body.h headers/Test_particle.h headers/init.h headers/leapfrog.h headers/MVS.h headers/integration.h headers/User_forces.h
 	$(COMPILER) -c $< -o $@
 
 all: run

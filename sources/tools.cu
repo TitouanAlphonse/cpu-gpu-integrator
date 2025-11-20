@@ -106,7 +106,7 @@ void pos_vel_to_orb_param(double mu, Vec3d q, Vec3d v, double& a, double& e, dou
 
 
 
-void helio_to_jacobi(massive_body* mb_helio, massive_body* mb_jacobi, int N_mb) {
+void helio_to_jacobi(Massive_body* mb_helio, Massive_body* mb_jacobi, int N_mb) {
     double sum_m = mb_helio[0].m;
     Vec3d sum_mq = mb_helio[0].m*mb_helio[0].q;
     Vec3d sum_mv = mb_helio[0].m*mb_helio[0].v;
@@ -129,7 +129,7 @@ void helio_to_jacobi(massive_body* mb_helio, massive_body* mb_jacobi, int N_mb) 
 }
 
 
-void jacobi_to_helio(massive_body* mb_helio, massive_body* mb_jacobi, int N_mb) {
+void jacobi_to_helio(Massive_body* mb_helio, Massive_body* mb_jacobi, int N_mb) {
     double sum_m = mb_helio[0].m;
     Vec3d sum_mq = Vec3d();
     Vec3d sum_mv = Vec3d();

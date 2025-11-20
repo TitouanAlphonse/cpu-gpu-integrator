@@ -10,7 +10,7 @@
 
 using namespace leapfrog;
 
-void leapfrog::pos_vel_sub(Vec3d& q_sub, Vec3d& v_sub, massive_body* mb, int N_mb, double M_tot) {
+void leapfrog::pos_vel_sub(Vec3d& q_sub, Vec3d& v_sub, Massive_body* mb, int N_mb, double M_tot) {
     q_sub = Vec3d();
     v_sub = Vec3d();
 
@@ -20,7 +20,7 @@ void leapfrog::pos_vel_sub(Vec3d& q_sub, Vec3d& v_sub, massive_body* mb, int N_m
     }
 }
 
-void leapfrog::pos_vel_sub_multi_step(Vec3d& q_sub, Vec3d& v_sub, massive_body_qv* mb_qv_multi_step, massive_body_mR* mb_mR, int N_mb, double M_tot, int substep) {
+void leapfrog::pos_vel_sub_multi_step(Vec3d& q_sub, Vec3d& v_sub, Massive_body_qv* mb_qv_multi_step, Massive_body_mR* mb_mR, int N_mb, double M_tot, int substep) {
     q_sub = Vec3d();
     v_sub = Vec3d();
 
@@ -38,7 +38,7 @@ void leapfrog::pos_vel_sub_multi_step(Vec3d& q_sub, Vec3d& v_sub, massive_body_q
 //--------------------------------------------//
 
 
-void leapfrog::kick_mb(massive_body* mb, int N_mb, double tau) {
+void leapfrog::kick_mb(Massive_body* mb, int N_mb, double tau) {
     Vec3d r_ij;
     double norm_r_ij3;
     Vec3d V_ij;
@@ -55,7 +55,7 @@ void leapfrog::kick_mb(massive_body* mb, int N_mb, double tau) {
     }
 }
 
-void leapfrog::kick_tp_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau) {
+void leapfrog::kick_tp_CPU(Massive_body* mb, Test_particle* tp, int N_mb, int N_tp, double tau) {
     Vec3d r_ij;
     double norm_r_ij3;
     Vec3d V_ij;
@@ -70,36 +70,36 @@ void leapfrog::kick_tp_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_
     }
 }
 
-void leapfrog::kick_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau) {
+void leapfrog::kick_CPU(Massive_body* mb, Test_particle* tp, int N_mb, int N_tp, double tau) {
     kick_mb(mb, N_mb, tau);
     kick_tp_CPU(mb, tp, N_mb, N_tp, tau);
 }
 
 
-void leapfrog::drift_mb(massive_body* mb, int N_mb, double tau) {
+void leapfrog::drift_mb(Massive_body* mb, int N_mb, double tau) {
     for (int i=0; i<N_mb; i++) {
         mb[i].q += tau*mb[i].v;
     }
 }
 
-void leapfrog::drift_tp_CPU(test_particle* tp, int N_tp, double tau) {
+void leapfrog::drift_tp_CPU(Test_particle* tp, int N_tp, double tau) {
     for (int i=0; i<N_tp; i++) {
         tp[i].q += tau*tp[i].v;
     }
 }
 
-void leapfrog::drift_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau) {
+void leapfrog::drift_CPU(Massive_body* mb, Test_particle* tp, int N_mb, int N_tp, double tau) {
     drift_mb(mb, N_mb, tau);
     drift_tp_CPU(tp, N_tp, tau);
 }
 
-void leapfrog::step_leapfrog_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau, massive_body* aux_mb) {
+void leapfrog::step_leapfrog_CPU(Massive_body* mb, Test_particle* tp, int N_mb, int N_tp, double tau, Massive_body* aux_mb) {
     drift_CPU(mb, tp, N_mb, N_tp, tau/2);
     kick_CPU(mb, tp, N_mb, N_tp, tau);
     drift_CPU(mb, tp, N_mb, N_tp, tau/2);
 }
 
-__host__ void leapfrog::kick_mb_multi_step(massive_body_qv* mb_qv_multi_step, massive_body_mR* mb_mR, int N_mb, double tau, int substep) {
+__host__ void leapfrog::kick_mb_multi_step(Massive_body_qv* mb_qv_multi_step, Massive_body_mR* mb_mR, int N_mb, double tau, int substep) {
     Vec3d r_ij;
     double norm_r_ij3;
     Vec3d V_ij;
@@ -116,14 +116,14 @@ __host__ void leapfrog::kick_mb_multi_step(massive_body_qv* mb_qv_multi_step, ma
     }
 }
 
-__host__ void leapfrog::drift_mb_multi_step(massive_body_qv* mb_qv_multi_step, int N_mb, double tau, int substep) {
+__host__ void leapfrog::drift_mb_multi_step(Massive_body_qv* mb_qv_multi_step, int N_mb, double tau, int substep) {
     for (int i=0; i<N_mb; i++) {
         mb_qv_multi_step[substep*N_mb+i].q += tau*mb_qv_multi_step[substep*N_mb+i].v;
     }
 }
 
 
-__host__ void leapfrog::substep_leapfrog_mb_GPU_multi_step(massive_body_qv* mb_qv_multi_step, massive_body_mR* mb_mR, int N_mb,  double tau, int substep, massive_body_qv* mb_qv_half_multi_step) {
+__host__ void leapfrog::substep_leapfrog_mb_GPU_multi_step(Massive_body_qv* mb_qv_multi_step, Massive_body_mR* mb_mR, int N_mb,  double tau, int substep, Massive_body_qv* mb_qv_half_multi_step) {
     for (int i=0; i<N_mb; i++) {
         mb_qv_multi_step[substep*N_mb+i].q = mb_qv_multi_step[(substep-1)*N_mb+i].q;
         mb_qv_multi_step[substep*N_mb+i].v = mb_qv_multi_step[(substep-1)*N_mb+i].v;
@@ -143,7 +143,7 @@ __host__ void leapfrog::substep_leapfrog_mb_GPU_multi_step(massive_body_qv* mb_q
 //--------------------------------------------//
 
 
-__device__ void leapfrog::kick_tp_GPU(massive_body* mb, test_particle& tp_i, int N_mb, int N_tp, double tau) {
+__device__ void leapfrog::kick_tp_GPU(Massive_body* mb, Test_particle& tp_i, int N_mb, int N_tp, double tau) {
     double dx, dy, dz, r_ij3, k, new_vx, new_vy, new_vz;
 
     new_vx = tp_i.v.get_x();
@@ -165,7 +165,7 @@ __device__ void leapfrog::kick_tp_GPU(massive_body* mb, test_particle& tp_i, int
     tp_i.v.set_xyz(new_vx, new_vy, new_vz);
 }
 
-__device__ void leapfrog::drift_tp_GPU(test_particle& tp_i, int N_tp, double tau) {
+__device__ void leapfrog::drift_tp_GPU(Test_particle& tp_i, int N_tp, double tau) {
     double new_x, new_y, new_z;
     
     new_x = tp_i.q.get_x() + tau*tp_i.v.get_x();
@@ -174,7 +174,7 @@ __device__ void leapfrog::drift_tp_GPU(test_particle& tp_i, int N_tp, double tau
     tp_i.q.set_xyz(new_x, new_y, new_z);
 }
 
-__global__ void leapfrog::step_tp_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau_kick, double tau_drift) {
+__global__ void leapfrog::step_tp_GPU(Massive_body* mb, Test_particle* tp, int N_mb, int N_tp, double tau_kick, double tau_drift) {
     int i = threadIdx.x + blockDim.x*blockIdx.x;
     if (i < N_tp) {
         drift_tp_GPU(tp[i], N_tp, tau_drift);
@@ -184,19 +184,19 @@ __global__ void leapfrog::step_tp_GPU(massive_body* mb, test_particle* tp, int N
 }
 
 
-__host__ void leapfrog::step_leapfrog_GPU(massive_body* mb, test_particle* tp, massive_body* access_mb, test_particle* access_tp, int N_mb, int N_tp, double tau, int nb_block, int nb_thread, massive_body* aux_mb) {
+__host__ void leapfrog::step_leapfrog_GPU(Massive_body* mb, Test_particle* tp, Massive_body* access_mb, Test_particle* access_tp, int N_mb, int N_tp, double tau, int nb_block, int nb_thread, Massive_body* aux_mb) {
     drift_mb(mb, N_mb, tau/2);
-    cudaMemcpy(access_mb, mb, N_mb*sizeof(massive_body), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
+    cudaMemcpy(access_mb, mb, N_mb*sizeof(Massive_body), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
     kick_mb(mb, N_mb, tau);
     drift_mb(mb, N_mb, tau/2);
 
     step_tp_GPU<<<nb_block, nb_thread>>>(access_mb, access_tp, N_mb, N_tp, tau, tau/2);
-    cudaMemcpy(tp, access_tp, N_tp*sizeof(test_particle), cudaMemcpyDeviceToHost);
+    cudaMemcpy(tp, access_tp, N_tp*sizeof(Test_particle), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 }
 
 
-__device__ void leapfrog::kick_tp_GPU_multi_step(massive_body_qv* mb_qv_multi_step, massive_body_mR* mb_mR, test_particle& tp_i_ss, int N_mb, int N_tp, double tau, int substep) {
+__device__ void leapfrog::kick_tp_GPU_multi_step(Massive_body_qv* mb_qv_multi_step, Massive_body_mR* mb_mR, Test_particle& tp_i_ss, int N_mb, int N_tp, double tau, int substep) {
     int j_ss;
     double dx, dy, dz, r_ij3, k, new_vx, new_vy, new_vz;
 
@@ -222,7 +222,7 @@ __device__ void leapfrog::kick_tp_GPU_multi_step(massive_body_qv* mb_qv_multi_st
 }
 
 
-__global__ void leapfrog::step_update_tp_GPU_multi_step(massive_body_qv* mb_qv_multi_step, massive_body_mR* mb_mR, test_particle* tp_multi_step, int N_mb, int N_tp, double tau_kick, double tau_drift, int N_substep) {
+__global__ void leapfrog::step_update_tp_GPU_multi_step(Massive_body_qv* mb_qv_multi_step, Massive_body_mR* mb_mR, Test_particle* tp_multi_step, int N_mb, int N_tp, double tau_kick, double tau_drift, int N_substep) {
     int i = threadIdx.x + blockDim.x*blockIdx.x;
     int i_ss;
     if (i < N_tp) {
@@ -242,9 +242,9 @@ __global__ void leapfrog::step_update_tp_GPU_multi_step(massive_body_qv* mb_qv_m
 }
 
 
-__host__ void leapfrog::step_leapfrog_tp_GPU_multi_step(massive_body_qv* mb_qv_multi_step, massive_body_mR* mb_mR, test_particle* tp_multi_step, massive_body_qv* access_mb_qv_multi_step, massive_body_mR* access_mb_mR, test_particle* access_tp_multi_step, int N_mb, int N_tp, int N_substep, double tau, int nb_block, int nb_thread, massive_body_qv* aux_mb_qv_multi_step) {
-    cudaMemcpy(access_mb_qv_multi_step, aux_mb_qv_multi_step, (N_substep+1)*N_mb*sizeof(massive_body_qv), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
+__host__ void leapfrog::step_leapfrog_tp_GPU_multi_step(Massive_body_qv* mb_qv_multi_step, Massive_body_mR* mb_mR, Test_particle* tp_multi_step, Massive_body_qv* access_mb_qv_multi_step, Massive_body_mR* access_mb_mR, Test_particle* access_tp_multi_step, int N_mb, int N_tp, int N_substep, double tau, int nb_block, int nb_thread, Massive_body_qv* aux_mb_qv_multi_step) {
+    cudaMemcpy(access_mb_qv_multi_step, aux_mb_qv_multi_step, (N_substep+1)*N_mb*sizeof(Massive_body_qv), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
     step_update_tp_GPU_multi_step<<<nb_block, nb_thread>>>(access_mb_qv_multi_step, access_mb_mR, access_tp_multi_step, N_mb, N_tp, tau, tau/2, N_substep);
-    cudaMemcpy(tp_multi_step, access_tp_multi_step, (N_substep+1)*N_tp*sizeof(test_particle), cudaMemcpyDeviceToHost);
+    cudaMemcpy(tp_multi_step, access_tp_multi_step, (N_substep+1)*N_tp*sizeof(Test_particle), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 }

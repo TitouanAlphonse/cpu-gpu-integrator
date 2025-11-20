@@ -30,7 +30,7 @@ int str_id(string str_desc) {
     return -1;
 }
 
-void init_param(ifstream& fich_input, int id_desc, bool& error_init, int& N_mb, bool& N_mb_init, int& N_tp, bool& N_tp_init, int& N_step, double& computation_time, bool& def_N_step_in_cp_time, bool& N_step_init, bool& def_N_step_in_years, double& tau, bool& tau_init, string& integration_method, bool& integration_method_init, string& integration_mode, bool& integration_mode_init, int& nb_block, bool& nb_block_init, int& nb_thread, bool& nb_thread_init, int& N_substep, bool& N_substep_init, string& init_config_mb, bool& init_config_mb_init, string& init_config_tp, bool& init_config_tp_init, string& suffix, bool& def_suffix_mode, double& freq_w, bool& def_freq_w_in_steps, string& user_forces) {
+void init_param(ifstream& fich_input, int id_desc, bool& error_init, int& N_mb, bool& N_mb_init, int& N_tp, bool& N_tp_init, int& N_step, double& computation_time, bool& def_N_step_in_cp_time, bool& N_step_init, bool& def_N_step_in_years, double& tau, bool& tau_init, string& integration_method, bool& integration_method_init, string& integration_mode, bool& integration_mode_init, int& nb_block, bool& nb_block_init, int& nb_thread, bool& nb_thread_init, int& N_substep, bool& N_substep_init, string& init_config_mb, bool& init_config_mb_init, string& init_config_tp, bool& init_config_tp_init, string& suffix, bool& def_suffix_mode, double& freq_w, bool& def_freq_w_in_steps, string& user_forces_type) {
     string str_p;
     int int_p;
     double double_p;
@@ -226,7 +226,7 @@ void init_param(ifstream& fich_input, int id_desc, bool& error_init, int& N_mb, 
     
     case 14:
         fich_input >> str_p;
-        user_forces = str_p;
+        user_forces_type = str_p;
         fich_input.clear();
         break;
 
@@ -235,14 +235,14 @@ void init_param(ifstream& fich_input, int id_desc, bool& error_init, int& N_mb, 
     }
 }
 
-void read_and_init(string file_name, bool& error_init, int& N_mb, int& N_tp, int& N_step, double& computation_time, bool& def_N_step_in_cp_time, double& tau, string& integration_method, string& integration_mode, int& nb_block, int& nb_thread, int& N_substep, string& init_config_mb, string& init_config_tp, string& suffix, double& freq_w, bool& def_freq_w_in_steps, string& user_forces) {
+void read_and_init(string file_name, bool& error_init, int& N_mb, int& N_tp, int& N_step, double& computation_time, bool& def_N_step_in_cp_time, double& tau, string& integration_method, string& integration_mode, int& nb_block, int& nb_thread, int& N_substep, string& init_config_mb, string& init_config_tp, string& suffix, double& freq_w, bool& def_freq_w_in_steps, string& user_forces_type) {
 
     // Default values :
     N_tp = 0;
     suffix = "";
     freq_w = 1;
     def_freq_w_in_steps = true;
-    user_forces = "none";
+    user_forces_type = "none";
 
     // Reading of the input file :
     ifstream fich_input;
@@ -262,7 +262,7 @@ void read_and_init(string file_name, bool& error_init, int& N_mb, int& N_tp, int
         while (fich_input.get(c)) {
             if (c == ':') {
                 id = str_id(str_desc);
-                init_param(fich_input, id, error_init, N_mb, N_mb_init, N_tp, N_tp_init, N_step, computation_time, def_N_step_in_cp_time, N_step_init, def_N_step_in_years, tau, tau_init, integration_method, integration_method_init, integration_mode, integration_mode_init, nb_block, nb_block_init, nb_thread, nb_thread_init, N_substep, N_substep_init, init_config_mb, init_config_mb_init, init_config_tp, init_config_tp_init, suffix, def_suffix_mode, freq_w, def_freq_w_in_steps, user_forces);
+                init_param(fich_input, id, error_init, N_mb, N_mb_init, N_tp, N_tp_init, N_step, computation_time, def_N_step_in_cp_time, N_step_init, def_N_step_in_years, tau, tau_init, integration_method, integration_method_init, integration_mode, integration_mode_init, nb_block, nb_block_init, nb_thread, nb_thread_init, N_substep, N_substep_init, init_config_mb, init_config_mb_init, init_config_tp, init_config_tp_init, suffix, def_suffix_mode, freq_w, def_freq_w_in_steps, user_forces_type);
                 str_desc = "";
             }
             else {
@@ -284,7 +284,7 @@ void read_and_init(string file_name, bool& error_init, int& N_mb, int& N_tp, int
             error_init = true;
         }
 
-        if ((user_forces == "dissipation_4p" && N_mb != 5) || (user_forces == "dissipation_n" && N_mb != 2)) {
+        if ((user_forces_type == "dissipation_4p" && N_mb != 5) || (user_forces_type == "dissipation_n" && N_mb != 2)) {
             cout << "Initialization error : incompatible number of massive bodies with the given user force." << endl;
             error_init = true;
         }
@@ -317,7 +317,7 @@ void read_and_init(string file_name, bool& error_init, int& N_mb, int& N_tp, int
 }
 
 
-void init_mb(massive_body* mb, int N_mb, string init_config_mb) {
+void init_mb(Massive_body* mb, int N_mb, string init_config_mb) {
     if (init_config_mb == "sun+gas_planets" && N_mb == 5) {
 
         Vec3d q_vec_Jupiter, v_vec_Jupiter, q_vec_Saturn, v_vec_Saturn, q_vec_Uranus, v_vec_Uranus, q_vec_Neptune, v_vec_Neptune;
@@ -329,11 +329,11 @@ void init_mb(massive_body* mb, int N_mb, string init_config_mb) {
         orb_param_to_pos_vel(19.189, 0.04726, deg_to_rad(0.77323), deg_to_rad(74.02675), deg_to_rad(96.9), M, G*(1+in_SM(M_Uranus)), q_vec_Uranus, v_vec_Uranus);
         orb_param_to_pos_vel(30.0699, 0.00859, deg_to_rad(1.77), deg_to_rad(131.784), deg_to_rad(273.2), M, G*(1+in_SM(M_Neptune)), q_vec_Neptune, v_vec_Neptune);
 
-        mb[0] = massive_body(1, 1, Vec3d(), Vec3d());
-        mb[1] = massive_body(in_SM(M_Jupiter), in_SR(R_Jupiter), q_vec_Jupiter, v_vec_Jupiter);
-        mb[2] = massive_body(in_SM(M_Saturn), in_SR(R_Saturn), q_vec_Saturn, v_vec_Saturn);
-        mb[3] = massive_body(in_SM(M_Uranus), in_SR(R_Uranus), q_vec_Uranus, v_vec_Uranus);
-        mb[4] = massive_body(in_SM(M_Neptune), in_SR(R_Neptune), q_vec_Neptune, v_vec_Neptune);
+        mb[0] = Massive_body(1, 1, Vec3d(), Vec3d());
+        mb[1] = Massive_body(in_SM(M_Jupiter), in_SR(R_Jupiter), q_vec_Jupiter, v_vec_Jupiter);
+        mb[2] = Massive_body(in_SM(M_Saturn), in_SR(R_Saturn), q_vec_Saturn, v_vec_Saturn);
+        mb[3] = Massive_body(in_SM(M_Uranus), in_SR(R_Uranus), q_vec_Uranus, v_vec_Uranus);
+        mb[4] = Massive_body(in_SM(M_Neptune), in_SR(R_Neptune), q_vec_Neptune, v_vec_Neptune);
         
 
         // /!\ Warning : the following lines need to be commented if not using the Leapfrog method
@@ -358,8 +358,8 @@ void init_mb(massive_body* mb, int N_mb, string init_config_mb) {
         double M = pi;
         orb_param_to_pos_vel(30.0699, 0.00859, deg_to_rad(1.77), deg_to_rad(131.784), deg_to_rad(273.2), M, G*(1+in_SM(M_Neptune)), q_vec_Neptune, v_vec_Neptune);
         
-        mb[0] = massive_body(1, 1, Vec3d(), Vec3d());
-        mb[1] = massive_body(in_SM(M_Neptune), in_SR(R_Neptune), q_vec_Neptune, v_vec_Neptune);
+        mb[0] = Massive_body(1, 1, Vec3d(), Vec3d());
+        mb[1] = Massive_body(in_SM(M_Neptune), in_SR(R_Neptune), q_vec_Neptune, v_vec_Neptune);
 
         M = 1 + in_SM(M_Neptune);
         Vec3d q_cm = Vec3d();
@@ -376,7 +376,7 @@ void init_mb(massive_body* mb, int N_mb, string init_config_mb) {
     }
 }
 
-void init_tp(test_particle* tp, int N_tp, string init_config_tp) {
+void init_tp(Test_particle* tp, int N_tp, string init_config_tp) {
     if (init_config_tp == "random") {
 
         Vec3d q, v;
@@ -385,7 +385,7 @@ void init_tp(test_particle* tp, int N_tp, string init_config_tp) {
         double a, e, inc, Omega, omega, M;
         for (int i=0; i<N_tp; i++) {
             orb_param_to_pos_vel(40 + 10*uniform(rd), 0.01*uniform(rd), deg_to_rad(uniform(rd)), 0, 0, 2*pi*uniform(rd), G, q, v);
-            tp[i] = test_particle(q, v);
+            tp[i] = Test_particle(q, v);
         }
     }
 }

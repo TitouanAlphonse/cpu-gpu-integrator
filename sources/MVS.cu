@@ -10,7 +10,7 @@
 
 using namespace MVS;
 
-void MVS::pos_vel_sub(Vec3d& q_sub, Vec3d& v_sub, massive_body* mb, int N_mb, double M_tot) {
+void MVS::pos_vel_sub(Vec3d& q_sub, Vec3d& v_sub, Massive_body* mb, int N_mb, double M_tot) {
     q_sub = Vec3d();
     v_sub = Vec3d();
 }
@@ -80,7 +80,7 @@ __host__ __device__ void gauss_func(Vec3d q0, Vec3d v0, double mu, double tau, d
 //--------------------------------------------//
 
 
-void MVS::kick_mb(massive_body* mb_helio, massive_body* mb_jacobi, int N_mb, double tau) {
+void MVS::kick_mb(Massive_body* mb_helio, Massive_body* mb_jacobi, int N_mb, double tau) {
     double sum_m = mb_helio[0].m;
     double sum_m2;
 
@@ -108,7 +108,7 @@ void MVS::kick_mb(massive_body* mb_helio, massive_body* mb_jacobi, int N_mb, dou
 }
 
 
-void MVS::drift_mb(massive_body* mb_helio, massive_body* mb_jacobi, int N_mb, double tau) {
+void MVS::drift_mb(Massive_body* mb_helio, Massive_body* mb_jacobi, int N_mb, double tau) {
     Vec3d q0, v0;
     double f, g, fdot, gdot;
     for (int i=1; i<N_mb; i++) {
@@ -124,7 +124,7 @@ void MVS::drift_mb(massive_body* mb_helio, massive_body* mb_jacobi, int N_mb, do
 
 
 
-void MVS::kick_tp(massive_body* mb_helio, test_particle* tp, int N_mb, int N_tp, double tau) {
+void MVS::kick_tp(Massive_body* mb_helio, Test_particle* tp, int N_mb, int N_tp, double tau) {
     Vec3d r_ij;
     Vec3d V_ij;
 
@@ -139,7 +139,7 @@ void MVS::kick_tp(massive_body* mb_helio, test_particle* tp, int N_mb, int N_tp,
     }
 }
 
-void MVS::drift_tp_CPU(test_particle* tp, double m0, int N_tp, double tau) {
+void MVS::drift_tp_CPU(Test_particle* tp, double m0, int N_tp, double tau) {
     Vec3d q0, v0;
     double f, g, fdot, gdot;
     for (int i=0; i<N_tp; i++) {
@@ -153,13 +153,13 @@ void MVS::drift_tp_CPU(test_particle* tp, double m0, int N_tp, double tau) {
     }
 }
 
-void MVS::kick_CPU(massive_body* mb, massive_body* aux_mb, test_particle* tp, int N_mb, int N_tp, double tau) {
+void MVS::kick_CPU(Massive_body* mb, Massive_body* aux_mb, Test_particle* tp, int N_mb, int N_tp, double tau) {
     kick_mb(mb, aux_mb, N_mb, tau);
     kick_tp(mb, tp, N_mb, N_tp, tau);
 }
 
 
-void MVS::drift_CPU(massive_body* mb, massive_body* aux_mb, test_particle* tp, int N_mb, int N_tp, double tau) {
+void MVS::drift_CPU(Massive_body* mb, Massive_body* aux_mb, Test_particle* tp, int N_mb, int N_tp, double tau) {
     helio_to_jacobi(mb, aux_mb, N_mb);
     drift_mb(mb, aux_mb, N_mb, tau);
     jacobi_to_helio(mb, aux_mb, N_mb);
@@ -168,7 +168,7 @@ void MVS::drift_CPU(massive_body* mb, massive_body* aux_mb, test_particle* tp, i
 }
 
 
-void MVS::step_MVS_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau, massive_body* aux_mb) {
+void MVS::step_MVS_CPU(Massive_body* mb, Test_particle* tp, int N_mb, int N_tp, double tau, Massive_body* aux_mb) {
     mb[0].q = Vec3d();
     mb[0].v = Vec3d();
 
@@ -185,7 +185,7 @@ void MVS::step_MVS_CPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, 
 //--------------------------------------------//
 
 
-__device__ void MVS::kick_tp_GPU(massive_body* mb_helio, test_particle& tp_i, int N_mb, int N_tp, double tau) {
+__device__ void MVS::kick_tp_GPU(Massive_body* mb_helio, Test_particle& tp_i, int N_mb, int N_tp, double tau) {
     double dx, dy, dz, dx2, dy2, dz2, r_ij3, r_ij32, kx, ky, kz, new_vx, new_vy, new_vz;
     
     new_vx = tp_i.v.get_x();
@@ -220,7 +220,7 @@ __device__ void MVS::kick_tp_GPU(massive_body* mb_helio, test_particle& tp_i, in
 }
 
 
-__device__ void MVS::drift_tp_GPU(test_particle& tp_i, double m0, int N_tp, double tau) {
+__device__ void MVS::drift_tp_GPU(Test_particle& tp_i, double m0, int N_tp, double tau) {
     double f, g, fdot, gdot, new_x, new_y, new_z, new_vx, new_vy, new_vz;
 
     gauss_func(tp_i.q, tp_i.v, G*m0, tau, f, g, fdot, gdot);
@@ -240,7 +240,7 @@ __device__ void MVS::drift_tp_GPU(test_particle& tp_i, double m0, int N_tp, doub
 }
 
 
-__global__ void MVS::step_tp_GPU(massive_body* mb, test_particle* tp, int N_mb, int N_tp, double tau_kick, double tau_drift) {
+__global__ void MVS::step_tp_GPU(Massive_body* mb, Test_particle* tp, int N_mb, int N_tp, double tau_kick, double tau_drift) {
     int i = threadIdx.x + blockDim.x*blockIdx.x;
     if (i < N_tp) {
         drift_tp_GPU(tp[i], mb[0].m, N_tp, tau_drift);
@@ -250,12 +250,12 @@ __global__ void MVS::step_tp_GPU(massive_body* mb, test_particle* tp, int N_mb, 
 }
 
 
-__host__ void MVS::step_MVS_GPU(massive_body* mb, test_particle* tp, massive_body* access_mb, test_particle* access_tp, int N_mb, int N_tp, double tau, int nb_block, int nb_thread, massive_body* aux_mb) {
+__host__ void MVS::step_MVS_GPU(Massive_body* mb, Test_particle* tp, Massive_body* access_mb, Test_particle* access_tp, int N_mb, int N_tp, double tau, int nb_block, int nb_thread, Massive_body* aux_mb) {
     helio_to_jacobi(mb, aux_mb, N_mb);
     drift_mb(mb, aux_mb, N_mb, tau/2);
     jacobi_to_helio(mb, aux_mb, N_mb);
 
-    cudaMemcpy(access_mb, mb, N_mb*sizeof(massive_body), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
+    cudaMemcpy(access_mb, mb, N_mb*sizeof(Massive_body), cudaMemcpyHostToDevice); // Copy the data for time-step step+1/2
     kick_mb(mb, aux_mb, N_mb, tau);
 
     helio_to_jacobi(mb, aux_mb, N_mb);
@@ -263,6 +263,6 @@ __host__ void MVS::step_MVS_GPU(massive_body* mb, test_particle* tp, massive_bod
     jacobi_to_helio(mb, aux_mb, N_mb);
 
     step_tp_GPU<<<nb_block, nb_thread>>>(access_mb, access_tp, N_mb, N_tp, tau, tau/2);
-    cudaMemcpy(tp, access_tp, N_tp*sizeof(test_particle), cudaMemcpyDeviceToHost);
+    cudaMemcpy(tp, access_tp, N_tp*sizeof(Test_particle), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 }

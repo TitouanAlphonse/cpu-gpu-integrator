@@ -31,10 +31,10 @@ save = False
 
 # anim2D(data_pos, data_general, "y", skip_frames, time_interval, max_size_mb, size_tp, background_color, ax_display, grid_display, ax_color, show, save, nb_fps, file_name)
 
-# traj3D(data_pos, data_general, background_color = background_color, ax_display = ax_display, grid_display = grid_display, ax_color = ax_color, show = True)
+traj3D(data_pos, data_general, background_color = background_color, ax_display = ax_display, grid_display = grid_display, ax_color = ax_color, show = True)
 
 # traj2D(data_pos, data_general, "z", [2], background_color = background_color, ax_display = ax_display, grid_display = grid_display, ax_color = ax_color, show = True)
 
-traj1D(data_pos, data_general, "r", show = True)
+# traj1D(data_pos, data_general, "r", show = True)
 
 # orb_param(data_orb_param, data_general, "a", show = True)

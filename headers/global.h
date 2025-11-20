@@ -8,6 +8,7 @@
 #include<chrono>
 #include<fstream>
 #include<random>
+#include<vector>
 using namespace std;
 
 #define pi 3.141592653589793

@@ -1,13 +1,13 @@
-#include"../headers/massive_body.h"
+#include"../headers/Massive_body.h"
 
 // #################
 // massive_body.cpp
 // #################
 
-// See headers/massive_body.h for details about the massive_body class
+// See headers/Massive_body.h for details about the Massive_body class
 
 
-massive_body::massive_body(double m_, double R_, Vec3d q_init, Vec3d v_init) {
+Massive_body::Massive_body(double m_, double R_, Vec3d q_init, Vec3d v_init) {
     if (m_ < 0) {
         cout << "Error : negative mass" << endl;
         m = 0;
@@ -30,7 +30,7 @@ massive_body::massive_body(double m_, double R_, Vec3d q_init, Vec3d v_init) {
 }
 
 
-void massive_body::print() {
+void Massive_body::print() {
     cout << "Mass : " << m << " Sun masses" << endl;
     cout << "Radius : " << R*R_Sun/1e3 << " km (" << R << " Sun radii)" << endl;
     cout << "Position (in a.u.):" << endl;
